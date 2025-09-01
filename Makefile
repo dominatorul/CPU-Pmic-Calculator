@@ -43,7 +43,7 @@ LIBDIRS  := $(PORTLIBS) $(LIBNX)
 #---------------------------------------------------------------------------------
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 
-export OUTPUT   := $(CURDIR)/$(TARGET)
+export OUTPUT   := $(CURDIR)/$(BUILD)/$(TARGET)
 export TOPDIR   := $(CURDIR)
 export VPATH    := $(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
                    $(foreach dir,$(DATA),$(CURDIR)/$(dir))
@@ -71,18 +71,7 @@ export INCLUDE    := $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
                      -I$(CURDIR)/$(BUILD)
 export LIBPATHS   := $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
-# JSON / Icon detection
-ifeq ($(strip $(CONFIG_JSON)),)
-  jsons := $(wildcard *.json)
-  ifneq (,$(findstring $(TARGET).json,$(jsons)))
-    export APP_JSON := $(TOPDIR)/$(TARGET).json
-  else ifneq (,$(findstring config.json,$(jsons)))
-    export APP_JSON := $(TOPDIR)/config.json
-  endif
-else
-  export APP_JSON := $(TOPDIR)/$(CONFIG_JSON)
-endif
-
+# Icon detection
 ifeq ($(strip $(ICON)),)
   icons := $(wildcard *.jpg)
   ifneq (,$(findstring $(TARGET).jpg,$(icons)))
@@ -98,7 +87,7 @@ ifeq ($(strip $(NO_ICON)),)
   export NROFLAGS += --icon=$(APP_ICON)
 endif
 ifeq ($(strip $(NO_NACP)),)
-  export NROFLAGS += --nacp=$(CURDIR)/$(TARGET).nacp
+  export NROFLAGS += --nacp=$(OUTPUT).nacp
 endif
 ifneq ($(APP_TITLEID),)
   export NACPFLAGS += --titleid=$(APP_TITLEID)
@@ -107,15 +96,17 @@ endif
 #---------------------------------------------------------------------------------
 .PHONY: all clean
 #---------------------------------------------------------------------------------
-all: $(BUILD)
+all: clean $(BUILD)
 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@echo "Copying $(TARGET).nro to root directory..."
+	@cp $(BUILD)/$(TARGET).nro $(CURDIR)/$(TARGET).nro
 
 clean:
 	@echo "Cleaning..."
-	@rm -fr $(BUILD) $(TARGET).nro $(TARGET).nacp $(TARGET).elf
+	@rm -fr $(BUILD) $(TARGET).nro
 
 #---------------------------------------------------------------------------------
 else
