@@ -26,3 +26,7 @@ This homebrew app is designed to help estimate CPU performance and power usage b
 
    ```sh
    make
+## Credits
+- Meha for his sys-clk fork
+- Flopsider for his CPU burner
+  
